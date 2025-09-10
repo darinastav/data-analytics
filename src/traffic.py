@@ -3,14 +3,15 @@ import pandas as pd
 import numpy as np
 
 # define input file inside archive
-zip_file_name = "../data/input/Flights_202306.zip"
-csv_file_name = "Flights_202306.csv"
+zip_file_name = "../data/input/flights.zip"
+csv_file_name_2023 = "Flights_202306.csv"
+csv_file_name_2022 = "Flights_202206.csv"
 
 
 # reading archive
 with zipfile.ZipFile(zip_file_name, 'r') as zip_file:
     # unzipping a file from archive
-    with zip_file.open(csv_file_name) as csv_file:
+    with zip_file.open(csv_file_name_2023) as csv_file:
         # reading csv file
         file = pd.read_csv(csv_file)
 
