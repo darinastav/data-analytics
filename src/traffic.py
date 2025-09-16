@@ -1,6 +1,7 @@
 import zipfile
 import pandas as pd
 import numpy as np
+from traffic_functions import average_number_per_day, busiest_day, max_flights
 
 # define input file inside archive
 zip_file_name = "../data/input/flights.zip"
@@ -43,13 +44,10 @@ pct_change = ((total_flights_2023 - total_flights_2022)/total_flights_2022)*100
 print(f'The total amount of flights is: {total_flights_2023}')
 print(f'The percentage change in 2023 comparing to 2022: {pct_change:.0f}%')
 
-daily_flights = file_2023.groupby(pd.Grouper(key='Date', freq='D')).size().reset_index(name='Flights')
-average_flights_per_day = daily_flights['Flights'].mean()
-print(f'The average number flights per day is: {average_flights_per_day:.0f}')
-
-busiest_day = daily_flights.loc[daily_flights['Flights'].idxmax(), 'Date']
-max_flights = daily_flights.loc[daily_flights['Flights'].idxmax(), 'Flights']
-print(f'The busiest day in June 2023 is: {busiest_day.date()} with {max_flights} flights')
+print(f'The average number flights per day in 2022 is: {average_number_per_day(file_2022):.0f}')
+print(f'The average number flights per day in 2023 is: {average_number_per_day(file_2023):.0f}')
+print(f'The busiest day in June 2022 is: {busiest_day(file_2022).date()} with {max_flights(file_2022)} flights')
+print(f'The busiest day in June 2023 is: {busiest_day(file_2023).date()} with {max_flights(file_2023)} flights')
 
 weekly_flights = file_2023.groupby(pd.Grouper(key='Date', freq='W-MON')).size().reset_index(name='Flights')
 max_week = weekly_flights.loc[weekly_flights['Flights'].idxmax(), 'Date']
