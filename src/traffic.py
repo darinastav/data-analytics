@@ -23,8 +23,10 @@ with zipfile.ZipFile(zip_file_name, 'r') as zip_file:
 x = file_2023.isnull().sum()
 y = file_2022.isnull().sum()
 file_2023.duplicated().sum()
+
 file_2023['Date'] = pd.to_datetime(file_2023['ACTUAL OFF BLOCK TIME'], dayfirst=True, errors='coerce') #convert actual off block time from str to date
 file_2023['Date Filed'] = pd.to_datetime(file_2023['FILED OFF BLOCK TIME'], dayfirst=True, errors='coerce') #convert filed off block time from str to date
+
 file_2023 = file_2023[~file_2023['Date'].dt.date.isin(
     [pd.to_datetime("2023-07-01").date(),
      pd.to_datetime("2023-05-31").date()])] #to remove May and July from a loop 2023
@@ -45,13 +47,14 @@ print(f'The percentage change in 2023 comparing to 2022: {pct_change:.0f}%')
 
 daily_flights = file_2023.groupby(pd.Grouper(key='Date', freq='D')).size().reset_index(name='Flights')
 average_flights_per_day = daily_flights['Flights'].mean()
+print(f'The number of flights per day:{daily_flights}')
 print(f'The average number flights per day is: {average_flights_per_day:.0f}')
 
 busiest_day = daily_flights.loc[daily_flights['Flights'].idxmax(), 'Date']
 max_flights = daily_flights.loc[daily_flights['Flights'].idxmax(), 'Flights']
 print(f'The busiest day in June 2023 is: {busiest_day.date()} with {max_flights} flights')
 
-weekly_flights = file_2023.groupby(pd.Grouper(key='Date', freq='W-MON')).size().reset_index(name='Flights')
+weekly_flights = file_2023.groupby(pd.Grouper(key='Date', freq='W-SUN')).size().reset_index(name='Flights')
 max_week = weekly_flights.loc[weekly_flights['Flights'].idxmax(), 'Date']
 max_week_flights = weekly_flights.loc[weekly_flights['Flights'].idxmax(), 'Flights']
 print(f'The busiest week was {max_week.date()} with {max_week_flights} flights')
@@ -61,9 +64,6 @@ file_2023['Actual_minutes'] = file_2023['Date'].dt.hour * 60 + file_2023['Date']
 file_2023['Filed_minutes']  = file_2023['Date Filed'].dt.hour * 60 + file_2023['Date Filed'].dt.minute
 file_2023['Delay'] = file_2023['Actual_minutes'] - file_2023['Filed_minutes']
 
-file_2023['Delay'] = np.where(file_2023['Delay'] < 0,
-                              file_2023['Delay'] + 24*60,
-                              file_2023['Delay']) #to cal when arrival is after the midnight
 total_delay_2023 = file_2023['Delay'].sum() #cal total delay in minutes
 average_delay_2023 = file_2023['Delay'].mean()
 
@@ -74,13 +74,34 @@ file_2022['Actual_minutes'] = file_2022['Date'].dt.hour * 60 + file_2022['Date']
 file_2022['Filed_minutes']  = file_2022['Date Filed'].dt.hour * 60 + file_2022['Date Filed'].dt.minute
 file_2022['Delay'] = file_2022['Actual_minutes'] - file_2022['Filed_minutes']
 
-file_2022['Delay'] = np.where(file_2022['Delay'] < 0,
-                              file_2022['Delay'] + 24*60,
-                              file_2022['Delay']) #to cal when arrival is after the midnight
 total_delay_2022 = file_2022['Delay'].sum() #cal total delay in minutes
 average_delay_2022 = file_2022['Delay'].mean()
 print(f'The total delay in 2022 is: {total_delay_2022} minutes')
 print(f'The average delay is: {average_delay_2022:.3f} minutes')
 
 pct_delay_change = ((average_delay_2023 - average_delay_2022)/average_delay_2022)*100
-print(f'The percentage change of delays in 2023 comparing to 2022 is: {pct_delay_change:.0f}% up')
+print(f'The percentage change of delays in 2023 comparing to 2022 is: {pct_delay_change:.0f}%')
+
+delay_per_day = file_2023.groupby(pd.Grouper(key='Date', freq='D')).size().reset_index(name='Delay')
+average_delay_per_day = delay_per_day['Delay'].mean()
+
+average_delay_flight_2023 = total_delay_2023 / total_flights_2023
+print(f'The average delay per flight in minutes is: {average_delay_flight_2023:.1f} min/flt in June 2023')
+
+average_delay_flight_2022 = total_delay_2022 / total_flights_2022
+print(f'The average delay per flight in minutes is: {average_delay_flight_2022:.1f} min/flt in June 2022')
+
+result = np.where(
+    delay_per_day['Delay'] > 30000)
+print(result) #days with delays more than 30 000 minutes
+
+#Punctuality
+
+count_standard = np.where(file_2023['Delay'] <= 15)
+count_standard = np.where(file_2022['Delay'] <= 15)
+total_values = np.array(count_standard)
+
+punctuality_2023 = (total_values.size/total_flights_2023)*100
+print(f'Overall arrival punctuality in June 2023 stood {punctuality_2023:.0f}%')
+punctuality_2022 = (total_values.size/total_flights_2022)*100
+print(f'Overall arrival punctuality in June 2022 stood {punctuality_2022:.0f}%')
