@@ -105,3 +105,5 @@ punctuality_2023 = (total_values.size/total_flights_2023)*100
 print(f'Overall arrival punctuality in June 2023 stood {punctuality_2023:.0f}%')
 punctuality_2022 = (total_values.size/total_flights_2022)*100
 print(f'Overall arrival punctuality in June 2022 stood {punctuality_2022:.0f}%')
+
+file_2023.info()
