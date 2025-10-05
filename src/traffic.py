@@ -1,6 +1,13 @@
 import zipfile
+from unittest.mock import patch
+
 import pandas as pd
 import numpy as np
+import matplotlib.pyplot as plt
+import seaborn as sns
+from matplotlib.patches import Patch
+from matplotlib.ticker import StrMethodFormatter
+from matplotlib.pyplot import xlabel
 
 # define input file inside archive
 zip_file_name = "../data/input/flights.zip"
@@ -47,7 +54,7 @@ print(f'The percentage change in 2023 comparing to 2022: {pct_change:.0f}%')
 
 daily_flights = file_2023.groupby(pd.Grouper(key='Date', freq='D')).size().reset_index(name='Flights')
 average_flights_per_day = daily_flights['Flights'].mean()
-print(f'The number of flights per day:{daily_flights}')
+#print(f'The number of flights per day:{daily_flights}')
 print(f'The average number flights per day is: {average_flights_per_day:.0f}')
 
 busiest_day = daily_flights.loc[daily_flights['Flights'].idxmax(), 'Date']
@@ -57,6 +64,16 @@ print(f'The busiest day in June 2023 is: {busiest_day.date()} with {max_flights}
 weekly_flights = file_2023.groupby(pd.Grouper(key='Date', freq='W-SUN')).size().reset_index(name='Flights')
 max_week = weekly_flights.loc[weekly_flights['Flights'].idxmax(), 'Date']
 max_week_flights = weekly_flights.loc[weekly_flights['Flights'].idxmax(), 'Flights']
+weekly_flights['Weeks'] = ['Week ' + str(i+1) for i in range(len(weekly_flights))]
+weekly_flights = weekly_flights[['Weeks', 'Flights']]
+weekly_flights['Flights_formatted'] = weekly_flights['Flights'].apply(lambda x: f"{x:,}")
+print(weekly_flights)
+weekly_flights_2022 = file_2022.groupby(pd.Grouper(key='Date', freq='W-SUN')).size().reset_index(name='Flights')
+max_week_2022 = weekly_flights_2022.loc[weekly_flights['Flights'].idxmax(), 'Date']
+weekly_flights_2022['Weeks'] = ['Week ' + str(i+1) for i in range(len(weekly_flights_2022))]
+weekly_flights_2022 = weekly_flights_2022[['Weeks', 'Flights']]
+weekly_flights_2022['Flights_formatted'] = weekly_flights_2022['Flights'].apply(lambda x: f"{x:,}")
+print(weekly_flights_2022)
 print(f'The busiest week was {max_week.date()} with {max_week_flights} flights')
 
 #ATFCM delays
@@ -106,4 +123,29 @@ print(f'Overall arrival punctuality in June 2023 stood {punctuality_2023:.0f}%')
 punctuality_2022 = (total_values.size/total_flights_2022)*100
 print(f'Overall arrival punctuality in June 2022 stood {punctuality_2022:.0f}%')
 
-file_2023.info()
+ax = sns.barplot(x='Weeks', y='Flights', data=weekly_flights, color='dodgerblue')
+plt.scatter(
+    weekly_flights_2022['Weeks'],
+    weekly_flights_2022['Flights'],
+    marker='_',
+    s=800,          # controls width/size
+    color='coral'
+)
+ax.bar_label(ax.containers[0],
+             labels=weekly_flights['Flights_formatted'],
+             label_type='center',
+             padding=-30,
+             color='white',
+             fontsize=10,
+             weight='bold')
+ax.set_xlabel('')
+ax.set_ylabel('Flights')
+ax.get_yaxis().set_major_formatter(StrMethodFormatter('{x:,.1f}'))
+ax.set_ylim(0, 250000)
+ax.set_title("Traffic", fontsize=18, weight='bold')
+legend_elements = [
+    Patch(facecolor='dodgerblue', label='Weekly Flights June 2025'),
+    Patch(facecolor='coral', label='Weekly Flights Previous Year')
+]
+ax.legend(handles=legend_elements, loc='upper left', frameon=False)
+plt.show()
