@@ -7,7 +7,7 @@ import matplotlib.pyplot as plt
 import seaborn as sns
 from matplotlib.patches import Patch
 from matplotlib.ticker import StrMethodFormatter
-from matplotlib.pyplot import xlabel
+from matplotlib.pyplot import xlabel, figure
 
 # define input file inside archive
 zip_file_name = "../data/input/flights.zip"
@@ -113,7 +113,6 @@ result = np.where(
 print(result) #days with delays more than 30 000 minutes
 
 #Punctuality
-
 count_standard = np.where(file_2023['Delay'] <= 15)
 count_standard = np.where(file_2022['Delay'] <= 15)
 total_values = np.array(count_standard)
@@ -123,14 +122,14 @@ print(f'Overall arrival punctuality in June 2023 stood {punctuality_2023:.0f}%')
 punctuality_2022 = (total_values.size/total_flights_2022)*100
 print(f'Overall arrival punctuality in June 2022 stood {punctuality_2022:.0f}%')
 
+#Plot Traffic Chart
 ax = sns.barplot(x='Weeks', y='Flights', data=weekly_flights, color='dodgerblue')
 plt.scatter(
     weekly_flights_2022['Weeks'],
     weekly_flights_2022['Flights'],
     marker='_',
-    s=800,          # controls width/size
-    color='coral'
-)
+    s=800,
+    color='coral')
 ax.bar_label(ax.containers[0],
              labels=weekly_flights['Flights_formatted'],
              label_type='center',
@@ -145,7 +144,9 @@ ax.set_ylim(0, 250000)
 ax.set_title("Traffic", fontsize=18, weight='bold')
 legend_elements = [
     Patch(facecolor='dodgerblue', label='Weekly Flights June 2025'),
-    Patch(facecolor='coral', label='Weekly Flights Previous Year')
-]
+    Patch(facecolor='coral', label='Weekly Flights Previous Year')]
 ax.legend(handles=legend_elements, loc='upper left', frameon=False)
 plt.show()
+#plt.savefig('../data/output/traffic.png')
+
+#Plot Punctuality Chart
